@@ -4,8 +4,10 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create.user';
 import { RefreshTokenDto } from './dto/refresh-token';
 import { LoginUserDto } from './dto/login.user';
+import { ApiKeyGuard } from 'src/guards/api-key.guard';
 
 @Controller('auth')
+@UseGuards(ApiKeyGuard)
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
