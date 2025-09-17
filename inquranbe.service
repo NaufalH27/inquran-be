@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=inquranprod
 Group=inquranprod
-WorkingDirectory=/opt/inquran/mtqmnuns-be
+WorkingDirectory=/opt/inquran/inquran-be
 
 # using ts-node (debug):
 # ExecStart=/usr/bin/npx ts-node src/main.ts
@@ -19,3 +19,5 @@ RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
+[Install]
+WantedBy=multi-user.target
