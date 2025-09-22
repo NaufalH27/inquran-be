@@ -101,6 +101,12 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
+  async logout(sessionId: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: { id: sessionId },
+    });
+    return { status: 'OK', message: 'Logged out' };
+  }
 
   async generateTokens(user: User) {
     const rawRefreshToken = randomBytes(64).toString('hex');
@@ -125,7 +131,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '30m',
+      expiresIn: '15m',
     });
 
     return {

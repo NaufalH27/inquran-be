@@ -26,4 +26,9 @@ export class AuthController {
         return this.authService.refreshToken(body.sessionId, body.refreshToken);
     }
 
+    @Post('logout')
+    async logout(@Body('sessionId') sessionId: string) {
+    return this.authService.logout(sessionId);
+    }
+
 }
