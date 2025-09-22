@@ -16,7 +16,19 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}  // ✅ inject service
+  constructor(private readonly userService: UserService) {}  
+    @Get('profile/me')
+    @UseGuards(AuthGuard('jwt'))
+    @UseInterceptors(ClassSerializerInterceptor)
+    async findMe(@GetUser('userId') userId: number): Promise<ResponseUserDto> {
+      const user = await this.userService.findById(userId); 
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return new ResponseUserDto(user);
+    }
     @Get(':id')
     @UseInterceptors(ClassSerializerInterceptor)
     async findOne(@Param('id') id: string): Promise<ResponseUserDto> {
@@ -28,19 +40,5 @@ export class UserController {
 
     return new ResponseUserDto(user);
     }
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(ClassSerializerInterceptor)
-  async findMe(@GetUser('userId') userId: number): Promise<ResponseUserDto> {
-    const user = await this.userService.findById(userId); 
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return new ResponseUserDto(user);
-  }
-
-
 }
 
