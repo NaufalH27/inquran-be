@@ -7,9 +7,12 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ResponseUserDto } from './dto/response.user';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @Controller('user')
 export class UserController {
@@ -25,5 +28,19 @@ export class UserController {
 
     return new ResponseUserDto(user);
     }
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
+  async findMe(@GetUser('userId') userId: number): Promise<ResponseUserDto> {
+    const user = await this.userService.findById(userId); 
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return new ResponseUserDto(user);
+  }
+
 
 }
+
