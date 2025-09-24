@@ -14,25 +14,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model user {
   id         Int      @id @default(autoincrement())
   username   String   @unique
-  fullName   String?
+  full_name   String?
   email      String   @unique
   password   String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   photo_url  String?  @unique
 
-  refreshTokens RefreshToken[]
+  refreshTokens refreshtoken[]
 }
 
-model RefreshToken {
+model refreshtoken {
   id         String   @id @default(uuid())
   token      String   @unique
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  user_id     Int
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expired_at  DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
