@@ -7,6 +7,19 @@ import { LoginUserDto } from './dto/login.user';
 import { User } from 'generated/prisma';
 import { randomBytes } from 'crypto';
 
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
+import { PrismaService } from '../prisma.service';
+import { LoginUserDto } from './dto/login-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from '@prisma/client';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,11 +30,11 @@ export class AuthService {
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { username } });
     if (user) {
-        const passwordValid = await this.compareBcrypt(password, user.password);
-        if (passwordValid) {
+      const passwordValid = await this.compareBcrypt(password, user.password);
+      if (passwordValid) {
         const { password, ...result } = user;
         return result;
-        }
+      }
     }
     return null;
   }
@@ -29,69 +42,71 @@ export class AuthService {
   async login(loginDto: LoginUserDto) {
     const { loginType, username, email, password } = loginDto;
 
-    const user = await this.prisma.user.findUnique({
-        where: loginType === 'email' ? { email } : { username },
-    });
+    let user: User | null = null;
 
-    if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
+    if (loginType === 'email') {
+      user = await this.prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        throw new UnauthorizedException('Email tidak ditemukan');
+      }
+    } else {
+      user = await this.prisma.user.findUnique({ where: { username } });
+      if (!user) {
+        throw new UnauthorizedException('Username tidak ditemukan');
+      }
     }
 
     const passwordValid = await this.compareBcrypt(password, user.password);
     if (!passwordValid) {
-        throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Password salah');
     }
 
     return this.generateTokens(user);
   }
 
-
   async register(userForm: CreateUserDto) {
     const existingUser = await this.prisma.user.findFirst({
-        where: {
-        OR: [
-            { username: userForm.username },
-            { email: userForm.email },
-        ],
-        },
+      where: {
+        OR: [{ username: userForm.username }, { email: userForm.email }],
+      },
     });
 
     if (existingUser) {
-        throw new BadRequestException('Username or email already taken');
+      throw new BadRequestException('Username atau email sudah digunakan');
     }
 
     const hashed = await this.hashString(userForm.password);
     const user = await this.prisma.user.create({
-        data: {
+      data: {
         username: userForm.username,
         password: hashed,
         email: userForm.email,
-        },
+      },
     });
 
-    return this.generateTokens(user)
+    return this.generateTokens(user);
   }
 
   async refreshToken(sessionId: string, refreshToken: string) {
     const storedToken = await this.prisma.refreshToken.findUnique({
-      where: { id:sessionId },
+      where: { id: sessionId },
     });
 
     if (!storedToken || storedToken.expiresAt < new Date()) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('Refresh token tidak valid atau sudah kedaluwarsa');
     }
 
     const user = await this.prisma.user.findUnique({
-      where: { id:storedToken.userId },
+      where: { id: storedToken.userId },
     });
-    
+
     if (!user) {
-        throw new UnauthorizedException("User not found");
+      throw new UnauthorizedException('Pengguna tidak ditemukan');
     }
 
-    const isTokenValid = await this.compareBcrypt(refreshToken, storedToken.token)
+    const isTokenValid = await this.compareBcrypt(refreshToken, storedToken.token);
     if (!isTokenValid) {
-        throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('Refresh token tidak valid atau sudah kedaluwarsa');
     }
 
     await this.prisma.refreshToken.delete({
@@ -105,7 +120,7 @@ export class AuthService {
     await this.prisma.refreshToken.deleteMany({
       where: { id: sessionId },
     });
-    return { status: 'OK', message: 'Logged out' };
+    return { status: 'OK', message: 'Berhasil logout' };
   }
 
   async generateTokens(user: User) {
@@ -113,7 +128,7 @@ export class AuthService {
     const hashRefToken = await this.hashString(rawRefreshToken);
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 90); 
+    expiresAt.setDate(expiresAt.getDate() + 90);
 
     const refToken = await this.prisma.refreshToken.create({
       data: {
@@ -135,7 +150,7 @@ export class AuthService {
     });
 
     return {
-      accessToken: accessToken,
+      accessToken,
       refreshToken: rawRefreshToken,
       sessionId: refToken.id,
     };
@@ -146,6 +161,6 @@ export class AuthService {
   }
 
   async hashString(plain: string): Promise<string> {
-    return bcrypt.hash(plain,10);
+    return bcrypt.hash(plain, 10);
   }
 }
