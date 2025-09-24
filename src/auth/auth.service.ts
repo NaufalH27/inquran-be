@@ -7,19 +7,6 @@ import { LoginUserDto } from './dto/login.user';
 import { User } from 'generated/prisma';
 import { randomBytes } from 'crypto';
 
-import {
-  Injectable,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
-import { randomBytes } from 'crypto';
-import { PrismaService } from '../prisma.service';
-import { LoginUserDto } from './dto/login-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User } from '@prisma/client';
-
 @Injectable()
 export class AuthService {
   constructor(
