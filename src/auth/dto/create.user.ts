@@ -8,20 +8,25 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsString({ message: 'Name must be a string' })
-  @IsNotEmpty({ message: 'Name is required' })
-  @MinLength(2, { message: 'Name must be at least 2 characters long' })
-  @MaxLength(50, { message: 'Name must not exceed 50 characters' })
+  @IsString({ message: 'Username harus berupa teks' })
+  @IsNotEmpty({ message: 'Username wajib diisi' })
+  @MinLength(2, { message: 'Username minimal 2 karakter' })
+  @MaxLength(50, { message: 'Username maksimal 50 karakter' })
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username hanya boleh berisi huruf, angka, dan underscore (_)',
+  })
   username: string;
 
-  @IsEmail({}, { message: 'Email must be a valid email address' })
+  @IsEmail({}, { message: 'Email harus berupa alamat email yang valid' })
+  @MaxLength(50, { message: 'Username maksimal 50 karakter' })
+  @MaxLength(254, { message: 'Email terlalu panjang (maksimal 254 karakter)' })
   email: string;
 
-  @IsString({ message: 'Password must be a string' })
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  @MaxLength(100, { message: 'Password must not exceed 100 characters' })
+  @IsString({ message: 'Password harus berupa teks' })
+  @MinLength(8, { message: 'Password minimal 8 karakter' })
+  @MaxLength(60, { message: 'Password maksimal 60 karakter' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/, {
-    message: 'Password must contain at least one letter and one number',
+    message: 'Password harus mengandung minimal satu huruf dan satu angka',
   })
   password: string;
 }
