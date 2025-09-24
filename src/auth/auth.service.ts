@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create.user';
 import { LoginUserDto } from './dto/login.user';
-import { User } from 'generated/prisma';
+import { user } from 'generated/prisma';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class AuthService {
   async login(loginDto: LoginUserDto) {
     const { loginType, username, email, password } = loginDto;
 
-    let user: User | null = null;
+    let user: user | null = null;
 
     if (loginType === 'email') {
       user = await this.prisma.user.findUnique({ where: { email } });
@@ -75,16 +75,16 @@ export class AuthService {
   }
 
   async refreshToken(sessionId: string, refreshToken: string) {
-    const storedToken = await this.prisma.refreshToken.findUnique({
+    const storedToken = await this.prisma.refreshtoken.findUnique({
       where: { id: sessionId },
     });
 
-    if (!storedToken || storedToken.expiresAt < new Date()) {
+    if (!storedToken || storedToken.expired_at < new Date()) {
       throw new UnauthorizedException('Refresh token tidak valid atau sudah kedaluwarsa');
     }
 
     const user = await this.prisma.user.findUnique({
-      where: { id: storedToken.userId },
+      where: { id: storedToken.user_id },
     });
 
     if (!user) {
@@ -96,7 +96,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token tidak valid atau sudah kedaluwarsa');
     }
 
-    await this.prisma.refreshToken.delete({
+    await this.prisma.refreshtoken.delete({
       where: { id: storedToken.id },
     });
 
@@ -104,24 +104,24 @@ export class AuthService {
   }
 
   async logout(sessionId: string) {
-    await this.prisma.refreshToken.deleteMany({
+    await this.prisma.refreshtoken.deleteMany({
       where: { id: sessionId },
     });
     return { status: 'OK', message: 'Berhasil logout' };
   }
 
-  async generateTokens(user: User) {
+  async generateTokens(user: user) {
     const rawRefreshToken = randomBytes(64).toString('hex');
     const hashRefToken = await this.hashString(rawRefreshToken);
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 90);
 
-    const refToken = await this.prisma.refreshToken.create({
+    const refToken = await this.prisma.refreshtoken.create({
       data: {
         token: hashRefToken,
-        userId: user.id,
-        expiresAt,
+        user_id: user.id,
+        expired_at: expiresAt,
       },
     });
 
