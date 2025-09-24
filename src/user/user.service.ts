@@ -8,7 +8,7 @@ export class UserService {
   async findById(id: number): Promise<user> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-    throw new Error("User Tidak Ditemukan");
+      throw new Error("User Tidak Ditemukan");
     }
     return user;
   }

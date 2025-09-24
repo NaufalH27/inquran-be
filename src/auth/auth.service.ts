@@ -51,28 +51,35 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-  async register(userForm: CreateUserDto) {
-    const existingUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ username: userForm.username }, { email: userForm.email }],
-      },
-    });
+async register(userForm: CreateUserDto) {
+  const existingUsername = await this.prisma.user.findUnique({
+    where: { username: userForm.username },
+  });
 
-    if (existingUser) {
-      throw new BadRequestException('Username atau email sudah digunakan');
-    }
-
-    const hashed = await this.hashString(userForm.password);
-    const user = await this.prisma.user.create({
-      data: {
-        username: userForm.username,
-        password: hashed,
-        email: userForm.email,
-      },
-    });
-
-    return this.generateTokens(user);
+  if (existingUsername) {
+    throw new BadRequestException('Username sudah digunakan');
   }
+
+  const existingEmail = await this.prisma.user.findUnique({
+    where: { email: userForm.email },
+  });
+
+  if (existingEmail) {
+    throw new BadRequestException('Email sudah digunakan');
+  }
+
+  const hashed = await this.hashString(userForm.password);
+  const user = await this.prisma.user.create({
+    data: {
+      username: userForm.username,
+      password: hashed,
+      email: userForm.email,
+    },
+  });
+
+  return this.generateTokens(user);
+}
+
 
   async refreshToken(sessionId: string, refreshToken: string) {
     const storedToken = await this.prisma.refreshtoken.findUnique({

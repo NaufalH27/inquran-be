@@ -1,4 +1,4 @@
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 export class ResponseUserDto {
   id: number;
@@ -11,7 +11,16 @@ export class ResponseUserDto {
   @Exclude()
   password: string;
 
+  @Exclude()
+  photo?: string; 
+
   constructor(partial: Partial<ResponseUserDto>) {
     Object.assign(this, partial);
+  }
+
+  @Expose()
+  get photoUrl(): string | null {
+    if (!this.photo) return null;
+    return `${process.env.UPLOAD_DIR}/${this.photo}`;
   }
 }
