@@ -5,7 +5,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -17,11 +16,6 @@ async function bootstrap() {
       transform: false,
     }),
   );
-
-  app.useStaticAssets('/var/www/inquran', {
-    prefix: '/uploads/', 
-  });
-
 
   await app.listen(process.env.PORT ?? 3000);
 }

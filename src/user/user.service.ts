@@ -10,6 +10,8 @@ export class UserService {
     if (!user) {
       throw new Error("User Tidak Ditemukan");
     }
+
+    user.photo_url = user.photo_url == null ? null : `${process.env.BASE_UPLOAD_URL}${process.env.UPLOAD_DIR}/${user.photo_url}`;
     return user;
   }
   async updateFullname(userId: number, fullName: string){
