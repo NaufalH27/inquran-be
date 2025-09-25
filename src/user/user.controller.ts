@@ -9,6 +9,7 @@ import {
   UseGuards,
   Patch,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ResponseUserDto } from './dto/response.user';
@@ -75,7 +76,16 @@ export class UserController {
       fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/svg+xml'];
         if (!allowedTypes.includes(file.mimetype)) {
-          return cb(new Error('Tipe file tidak diizinkan'), false);
+          const allowedExts = allowedTypes
+            .map((type) => '.' + type.split('/').pop()) 
+            .join(', ')
+            .replace('.svg+xml', '.svg'); 
+          return cb(
+            new BadRequestException(
+              `Tipe file tidak diizinkan. Hanya diperbolehkan: ${allowedExts}`,
+            ),
+            false,
+          );
         }
         cb(null, true);
       },

@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateFullnameDto {
@@ -6,8 +6,35 @@ export class UpdateFullnameDto {
   @Transform(({ value }) => value.trim())
   @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
   @MaxLength(100, { message: 'Nama lengkap maksimal 100 karakter' })
-  @Matches(/^[a-zA-ZÀ-ÖØ-öø-ÿ\s'-]+$/, {
-    message: 'Nama lengkap hanya boleh berisi huruf, spasi, tanda hubung, atau apostrof',
+  @Matches(/^[a-zA-ZÀ-ÖØ-öø-ÿ0-9_\s'-]+$/, {
+    message:
+      'Nama lengkap hanya boleh berisi huruf, angka, underscore (_), spasi, tanda hubung (-), dan apostrof (\')',
   })
   fullName: string;
+}
+
+export class UpdateUserDto {
+  @IsString({ message: 'Username harus berupa teks' })
+  @IsNotEmpty({ message: 'Username wajib diisi' })
+  @MinLength(2, { message: 'Username minimal 2 karakter' })
+  @MaxLength(50, { message: 'Username maksimal 50 karakter' })
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username hanya boleh berisi huruf, angka, dan underscore (_)',
+  })
+  username: string;
+
+  @IsEmail({}, { message: 'Email harus berupa alamat email yang valid' })
+  @MaxLength(254, { message: 'Email terlalu panjang (maksimal 254 karakter)' })
+  email: string;
+
+  @IsOptional()
+  @IsString({ message: 'Nama lengkap harus berupa teks' })
+  @Transform(({ value }) => value?.trim())
+  @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
+  @MaxLength(100, { message: 'Nama lengkap maksimal 100 karakter' })
+  @Matches(/^[a-zA-ZÀ-ÖØ-öø-ÿ0-9_\s'-]+$/, {
+    message:
+      'Nama lengkap hanya boleh berisi huruf, angka, underscore (_), spasi, tanda hubung (-), dan apostrof (\')',
+  })
+  fullName?: string;
 }

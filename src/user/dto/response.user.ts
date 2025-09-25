@@ -18,7 +18,7 @@ export class ResponseUserDto {
     Object.assign(this, partial);
   }
 
-  @Expose()
+  @Expose({ name: 'photo_url' })
   get photoUrl(): string | null {
     if (!this.photo) return null;
     return `${process.env.UPLOAD_DIR}/${this.photo}`;
