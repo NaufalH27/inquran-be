@@ -1,26 +1,36 @@
-import { Exclude, Expose } from 'class-transformer';
-
 export class ResponseUserDto {
   id: number;
   username: string;
   fullName: string | null;
-  email: string;
-  created_at: Date;
-  updated_at: Date;
+  email: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  photoUrl: string | null;
+  googleId: string | null;
+  googleEmail: string | null;
 
-  @Exclude()
-  password: string;
+  constructor(user: {
+    id: number;
+    username: string;
+    full_name: string | null;
+    email: string | null;
+    created_at: Date;
+    updated_at: Date;
+    photo_url?: string | null;
+    google_id?: string | null; 
+    google_email?: string | null;
+  }) {
+    this.id = user.id;
+    this.username = user.username;
+    this.fullName = user.full_name;
+    this.email = user.email;
+    this.createdAt = user.created_at;
+    this.updatedAt = user.updated_at;
+    this.googleId = user.google_id ?? null;
+    this.googleEmail = user.google_id ?? null;
 
-  @Exclude()
-  photo?: string; 
-
-  constructor(partial: Partial<ResponseUserDto>) {
-    Object.assign(this, partial);
-  }
-
-  @Expose({ name: 'photo_url' })
-  get photoUrl(): string | null {
-    if (!this.photo) return null;
-    return `${process.env.UPLOAD_DIR}/${this.photo}`;
+    this.photoUrl = user.photo_url
+      ? `${process.env.UPLOAD_DIR}/${user.photo_url}`
+      : null;
   }
 }
