@@ -12,16 +12,21 @@ export class UserService {
     }
     return user;
   }
-  async updateFullname(userId: number, fullName: string): Promise<user> {
+  async updateFullname(userId: number, fullName: string){
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    return this.prisma.user.update({
+    this.prisma.user.update({
       where: { id: userId },
       data: { full_name : fullName ?? user.full_name },
     });
+    return {
+      status: 'success',
+      code: 200,
+      message: 'OK',
+    };
   }
 
   async updatePhoto(userId: number, photoFileName: string): Promise<user> {

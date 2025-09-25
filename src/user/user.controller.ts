@@ -53,9 +53,8 @@ export class UserController {
   async updateProfile(
     @GetUser('userId') userId: number,
     @Body() dto: UpdateFullnameDto,
-  ): Promise<ResponseUserDto> {
-    const updatedUser = await this.userService.updateFullname(userId, dto.fullName);
-    return new ResponseUserDto(updatedUser);
+  ) {
+    return this.userService.updateFullname(userId, dto.fullName);
   }
 
   @Patch('profile/me/photo')
