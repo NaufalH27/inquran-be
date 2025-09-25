@@ -31,17 +31,22 @@ export class UserService {
     };
   }
 
-  async updatePhoto(userId: number, photoFileName: string): Promise<user> {
+  async updatePhoto(userId: number, photoFileName: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    return this.prisma.user.update({
+    this.prisma.user.update({
       where: { id: userId },
       data: {
         photo_url: photoFileName, 
       },
     });
+    return {
+      status: 'success',
+      code: 200,
+      message: 'OK',
+    };
   }
 }

@@ -94,7 +94,7 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @GetUser('userId') userId: number,
   ) {
-    return this.userService.updatePhoto(userId, file.filename); 
+    await this.userService.updatePhoto(userId, file.filename); 
   }
 }
 
