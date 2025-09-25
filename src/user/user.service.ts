@@ -11,7 +11,7 @@ export class UserService {
       throw new Error("User Tidak Ditemukan");
     }
 
-    user.photo_url = user.photo_url == null ? null : `${process.env.BASE_UPLOAD_URL}${process.env.UPLOAD_DIR}/${user.photo_url}`;
+    user.photo_url = user.photo_url == null ? null : `${process.env.BASE_UPLOAD_URL}/${user.photo_url}`;
     return user;
   }
   async updateFullname(userId: number, fullName: string){
@@ -20,7 +20,7 @@ export class UserService {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { full_name : fullName ?? user.full_name },
     });
@@ -37,7 +37,7 @@ export class UserService {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         photo_url: photoFileName, 
