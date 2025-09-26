@@ -11,7 +11,7 @@ export class UserService {
       throw new Error("User Tidak Ditemukan");
     }
 
-    user.photo_url = user.photo_url == null ? null : `${process.env.BASE_UPLOAD_URL}/${user.photo_url}`;
+    user.photo_url = user.photo_url == null ? null : `${process.env.BASE_UPLOAD_URL}/uploads/photos/${user.photo_url}`;
     return user;
   }
   async updateFullname(userId: number, fullName: string){
