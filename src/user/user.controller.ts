@@ -16,7 +16,7 @@ import { ResponseUserDto } from './dto/response.user';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import path, { extname } from 'path';
+import { extname, join } from 'path';
 import { diskStorage } from 'multer';
 import { UpdateFullnameDto } from './dto/update.user';
 
@@ -62,7 +62,7 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
-        destination: path.join(process.env.UPLOAD_DIR || 'uploads', 'photos'), 
+        destination: join(process.env.UPLOAD_DIR || 'uploads', 'photos'), 
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
