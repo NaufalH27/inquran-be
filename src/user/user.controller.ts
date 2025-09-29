@@ -10,6 +10,7 @@ import {
   Patch,
   UploadedFile,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ResponseUserDto } from './dto/response.user';
@@ -18,7 +19,8 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname, join } from 'path';
 import { diskStorage } from 'multer';
-import { UpdateFullnameDto } from './dto/update.user';
+import { UpdateFullnameDto, UpdateUserDto } from './dto/update.user';
+import { CreateGoogleUserDto, CreateUserDto } from 'src/auth/dto/create.user';
 
 
 @Controller('user')
@@ -94,7 +96,28 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @GetUser('userId') userId: number,
   ) {
-    await this.userService.updatePhoto(userId, file.filename); 
+    return await this.userService.updatePhoto(userId, file.filename); 
+  }
+
+  @Put('profile/me')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
+  async updateMe(@GetUser('userId') userId: number, @Body() body: UpdateUserDto): Promise<ResponseUserDto> {
+    return await this.userService.updateUserInfo(userId, body); 
+  }
+
+  @Put('bind/password')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
+  async bindPasswordMethod(@GetUser('userId') userId: number, @Body() password: string): Promise<ResponseUserDto> {
+    return await this.userService.bindPasswordMethod(userId, password); 
+  }
+
+  @Put('bind/oauth/google')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
+  async bindGoogleMethod(@GetUser('userId') userId: number, @Body() body: CreateGoogleUserDto): Promise<ResponseUserDto> {
+    return await this.userService.bindGoogleOauthMethod(userId, body); 
   }
 }
 

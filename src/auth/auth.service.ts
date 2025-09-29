@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -6,6 +6,7 @@ import { CreateGoogleUserDto, CreateUserDto } from './dto/create.user';
 import { LoginUserDto } from './dto/login.user';
 import { user } from 'generated/prisma';
 import { randomBytes } from 'crypto';
+import { ResponseUserDto } from 'src/user/dto/response.user';
 
 @Injectable()
 export class AuthService {
@@ -37,18 +38,14 @@ export class AuthService {
 
     if (loginType === 'email') {
       user = await this.prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        throw new UnauthorizedException('Email tidak ditemukan');
-      }
+      if (!user) throw new UnauthorizedException('Email tidak ditemukan');
     } else {
       user = await this.prisma.user.findUnique({ where: { username } });
-      if (!user) {
-        throw new UnauthorizedException('Username tidak ditemukan');
-      }
+      if (!user) throw new UnauthorizedException('Username tidak ditemukan');
     }
 
     if (!user.password) {
-      throw new UnauthorizedException('password login belum di set up');
+      throw new UnauthorizedException('Password login belum di set up');
     }
 
     const passwordValid = await this.compareBcrypt(password, user.password);
@@ -56,25 +53,25 @@ export class AuthService {
       throw new UnauthorizedException('Password salah');
     }
 
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+
+    return {
+      tokens,
+      user: new ResponseUserDto(user),
+    };
   }
+
 
   async register(userForm: CreateUserDto) {
     const existingUsername = await this.prisma.user.findUnique({
       where: { username: userForm.username },
     });
-
-    if (existingUsername) {
-      throw new BadRequestException('Username sudah digunakan');
-    }
+    if (existingUsername) throw new ConflictException('Username sudah digunakan');
 
     const existingEmail = await this.prisma.user.findUnique({
       where: { email: userForm.email },
     });
-
-    if (existingEmail) {
-      throw new BadRequestException('Email sudah digunakan');
-    }
+    if (existingEmail) throw new ConflictException('Email sudah digunakan');
 
     const hashed = await this.hashString(userForm.password);
     const user = await this.prisma.user.create({
@@ -85,30 +82,40 @@ export class AuthService {
       },
     });
 
-    return this.generateTokens(user);
-  }
-async registerGoogle(dto: CreateGoogleUserDto) {
-  let user = await this.prisma.user.findUnique({
-    where: { google_id: dto.googleId },
-  });
+    const tokens = await this.generateTokens(user);
 
-  if (user) {
-    return this.generateTokens(user);
+    return {
+      tokens,
+      user: new ResponseUserDto(user),
+    };
   }
 
-  user = await this.prisma.user.create({
-    data: {
-      full_name: dto.fullName,
-      google_id: dto.googleId,
-      google_email: dto.email,
-    },
-  });
+  async registerGoogle(dto: CreateGoogleUserDto) {
+    let user = await this.prisma.user.findUnique({
+      where: { google_id: dto.googleId },
+    });
 
-  return this.generateTokens(user);
-}
+    let isNewUser = false;
 
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          full_name: dto.fullName,
+          google_id: dto.googleId,
+          google_email: dto.email,
+        },
+      });
+      isNewUser = true;
+    }
 
+    const tokens = await this.generateTokens(user);
 
+    return {
+      isNewUser, 
+      tokens,
+      user: new ResponseUserDto(user),
+    };
+  }
 
   async refreshToken(sessionId: string, refreshToken: string) {
     const storedToken = await this.prisma.refreshtoken.findUnique({
@@ -122,22 +129,23 @@ async registerGoogle(dto: CreateGoogleUserDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: storedToken.user_id },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('Pengguna tidak ditemukan');
-    }
+    if (!user) throw new UnauthorizedException('Pengguna tidak ditemukan');
 
     const isTokenValid = await this.compareBcrypt(refreshToken, storedToken.token);
     if (!isTokenValid) {
       throw new UnauthorizedException('Refresh token tidak valid atau sudah kedaluwarsa');
     }
 
-    await this.prisma.refreshtoken.delete({
-      where: { id: storedToken.id },
-    });
+    await this.prisma.refreshtoken.delete({ where: { id: storedToken.id } });
 
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+
+    return {
+      tokens,
+      user: new ResponseUserDto(user),
+    };
   }
+
 
   async logout(sessionId: string) {
     await this.prisma.refreshtoken.deleteMany({

@@ -8,6 +8,7 @@ export class ResponseUserDto {
   photoUrl: string | null;
   googleId: string | null;
   googleEmail: string | null;
+  hasPassword: boolean; // NEW
 
   constructor(user: {
     id: number;
@@ -19,6 +20,7 @@ export class ResponseUserDto {
     photo_url?: string | null;
     google_id?: string | null; 
     google_email?: string | null;
+    password?: string | null; 
   }) {
     this.id = user.id;
     this.username = user.username;
@@ -28,7 +30,8 @@ export class ResponseUserDto {
     this.updatedAt = user.updated_at;
     this.googleId = user.google_id ?? null;
     this.googleEmail = user.google_email ?? null;
-
     this.photoUrl = user.photo_url ?? null;
+
+    this.hasPassword = Boolean(user.password);
   }
 }
