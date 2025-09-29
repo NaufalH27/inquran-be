@@ -16,10 +16,10 @@ datasource db {
 
 model user {
   id         Int      @id @default(autoincrement())
-  username   String   @unique
+  username   String?   @unique
   full_name   String?
   email      String?   @unique
-  password   String
+  password   String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   photo_url  String?  @unique

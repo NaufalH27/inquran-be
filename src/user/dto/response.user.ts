@@ -1,6 +1,6 @@
 export class ResponseUserDto {
   id: number;
-  username: string;
+  username: string | null;
   fullName: string | null;
   email: string | null;
   createdAt: Date;
@@ -11,7 +11,7 @@ export class ResponseUserDto {
 
   constructor(user: {
     id: number;
-    username: string;
+    username: string | null;
     full_name: string | null;
     email: string | null;
     created_at: Date;

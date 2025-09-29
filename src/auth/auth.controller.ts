@@ -1,7 +1,7 @@
 // auth.controller.ts
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/create.user';
+import { CreateGoogleUserDto, CreateUserDto } from './dto/create.user';
 import { RefreshTokenDto } from './dto/refresh-token';
 import { LoginUserDto } from './dto/login.user';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
@@ -21,6 +21,11 @@ export class AuthController {
         return this.authService.register(body);
     }
 
+    @Post('register/oauth/google')
+        async registerGoogle(@Body() body: CreateGoogleUserDto) {
+        return this.authService.registerGoogle(body);
+    }
+
     @Post('refresh-token')
     async refreshToken(@Body() body: RefreshTokenDto) {
         return this.authService.refreshToken(body.sessionId, body.refreshToken);
@@ -30,5 +35,7 @@ export class AuthController {
     async logout(@Body('sessionId') sessionId: string) {
     return this.authService.logout(sessionId);
     }
+
+
 
 }

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from './dto/create.user';
+import { CreateGoogleUserDto, CreateUserDto } from './dto/create.user';
 import { LoginUserDto } from './dto/login.user';
 import { user } from 'generated/prisma';
 import { randomBytes } from 'crypto';
@@ -16,7 +16,11 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { username } });
+
     if (user) {
+      if (!user.password) {
+        throw new UnauthorizedException('Password Login belum di set up');
+      } 
       const passwordValid = await this.compareBcrypt(password, user.password);
       if (passwordValid) {
         const { password, ...result } = user;
@@ -43,6 +47,10 @@ export class AuthService {
       }
     }
 
+    if (!user.password) {
+      throw new UnauthorizedException('password login belum di set up');
+    }
+
     const passwordValid = await this.compareBcrypt(password, user.password);
     if (!passwordValid) {
       throw new UnauthorizedException('Password salah');
@@ -51,34 +59,55 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-async register(userForm: CreateUserDto) {
-  const existingUsername = await this.prisma.user.findUnique({
-    where: { username: userForm.username },
+  async register(userForm: CreateUserDto) {
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username: userForm.username },
+    });
+
+    if (existingUsername) {
+      throw new BadRequestException('Username sudah digunakan');
+    }
+
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: userForm.email },
+    });
+
+    if (existingEmail) {
+      throw new BadRequestException('Email sudah digunakan');
+    }
+
+    const hashed = await this.hashString(userForm.password);
+    const user = await this.prisma.user.create({
+      data: {
+        username: userForm.username,
+        password: hashed,
+        email: userForm.email,
+      },
+    });
+
+    return this.generateTokens(user);
+  }
+async registerGoogle(dto: CreateGoogleUserDto) {
+  let user = await this.prisma.user.findUnique({
+    where: { google_id: dto.googleId },
   });
 
-  if (existingUsername) {
-    throw new BadRequestException('Username sudah digunakan');
+  if (user) {
+    return this.generateTokens(user);
   }
 
-  const existingEmail = await this.prisma.user.findUnique({
-    where: { email: userForm.email },
-  });
-
-  if (existingEmail) {
-    throw new BadRequestException('Email sudah digunakan');
-  }
-
-  const hashed = await this.hashString(userForm.password);
-  const user = await this.prisma.user.create({
+  user = await this.prisma.user.create({
     data: {
-      username: userForm.username,
-      password: hashed,
-      email: userForm.email,
+      full_name: dto.fullName,
+      google_id: dto.googleId,
+      google_email: dto.email,
     },
   });
 
   return this.generateTokens(user);
 }
+
+
 
 
   async refreshToken(sessionId: string, refreshToken: string) {

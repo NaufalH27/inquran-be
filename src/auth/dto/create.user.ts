@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsString,
   IsEmail,
@@ -5,6 +6,7 @@ import {
   MaxLength,
   Matches,
   IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -29,4 +31,21 @@ export class CreateUserDto {
     message: 'Password harus mengandung minimal satu huruf dan satu angka',
   })
   password: string;
+}
+
+
+export class CreateGoogleUserDto {
+  @IsEmail({}, { message: 'Email harus berupa alamat email yang valid' })
+  @MaxLength(254, { message: 'Email terlalu panjang (maksimal 254 karakter)' })
+  email: string;
+
+  @IsOptional()
+  @IsString({ message: 'Nama lengkap harus berupa teks' })
+  @Transform(({ value }) => value?.trim())
+  @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
+  @MaxLength(100, { message: 'Nama lengkap maksimal 100 karakter' })
+  fullName?: string;
+
+  @IsString()
+  googleId: string;
 }
