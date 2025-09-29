@@ -28,6 +28,7 @@ model user {
   google_email String?
 
   refreshTokens refreshtoken[]
+  favorites favorite[]
 }
 
 model refreshtoken {
@@ -38,4 +39,13 @@ model refreshtoken {
   expired_at  DateTime
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model favorite {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  surah_number Int
+  ayah_number  Int
+  created_at   DateTime @default(now())
 }
