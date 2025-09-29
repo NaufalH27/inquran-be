@@ -103,12 +103,13 @@ export class UserController {
   @Post('favorite/add')
   @UseGuards(AuthGuard('jwt'))
   async addFavorites(
-    @Body() body: { user_id: number; favorites: { surah_number: number; ayah_number: number }[] },
+    @GetUser('userId') userId: number,
+    @Body() body: { favorites: { surah_number: number; ayah_number: number }[] },
   ) {
-    const { user_id, favorites } = body;
+    const { favorites } = body;
     const results: favorite[] = await Promise.all(
       favorites.map(fav =>
-        this.userService.addFavorite(user_id, fav.surah_number, fav.ayah_number),
+        this.userService.addFavorite(userId, fav.surah_number, fav.ayah_number),
       ),
     );
 
@@ -118,21 +119,22 @@ export class UserController {
   @Post('favorite/delete')
   @UseGuards(AuthGuard('jwt'))
   async deleteFavorites(
-    @Body() body: { user_id: number; favorites: { surah_number: number; ayah_number: number }[] },
+    @GetUser('userId') userId: number,
+    @Body() body: { favorites: { surah_number: number; ayah_number: number }[] },
   ) {
-    const { user_id, favorites } = body;
+    const { favorites } = body;
     const results = await Promise.all(
       favorites.map(fav =>
-        this.userService.deleteFavorite(user_id, fav.surah_number, fav.ayah_number),
+        this.userService.deleteFavorite(userId, fav.surah_number, fav.ayah_number),
       ))
 
     return { success: true, deleted: results.length };
   }
 
   @Get('favorites')
-  async listFavorites(@Body() body: { user_id: number }) {
-    const { user_id } = body;
-    const favorites = await this.userService.listFavorites(user_id);
+  @UseGuards(AuthGuard('jwt'))
+  async listFavorites(@GetUser('userId') userId: number) {
+    const favorites = await this.userService.listFavorites(userId);
     return { success: true, data: favorites };
   }
 }
