@@ -59,7 +59,7 @@ export class UserController {
     @GetUser('userId') userId: number,
     @Body() dto: UpdateFullnameDto,
   ) {
-    await this.userService.updateFullname(userId, dto.fullName);
+    return await this.userService.updateFullname(userId, dto.fullName);
   }
 
   @Patch('profile/me/photo')
