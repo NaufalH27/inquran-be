@@ -1,3 +1,5 @@
+import { join } from "path";
+
 export class ResponseUserDto {
   id: number;
   username: string | null;
@@ -30,7 +32,9 @@ export class ResponseUserDto {
     this.updatedAt = user.updated_at;
     this.googleId = user.google_id ?? null;
     this.googleEmail = user.google_email ?? null;
-    this.photoUrl = user.photo_url ?? null;
+    this.photoUrl = user.photo_url
+      ? `${process.env.UPLOAD_BASE_URL || ''}/uploads/photos/${user.photo_url}`
+      : null;
 
     this.hasPassword = Boolean(user.password);
   }

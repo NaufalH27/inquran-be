@@ -67,7 +67,7 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
-        destination: join(process.env.UPLOAD_DIR || 'uploads', 'photos'),
+        destination: join(process.env.UPLOAD_DIR || '', 'uploads', 'photos'),
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
