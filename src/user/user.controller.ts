@@ -20,7 +20,7 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname, join } from 'path';
 import { diskStorage } from 'multer';
-import { UpdateUserDto } from './dto/update.user';
+import { ChangePasswordDto, UpdateUserDto } from './dto/update.user';
 import { CreateGoogleUserDto, CreateUserDto } from 'src/auth/dto/create.user';
 import { UpdateFullnameDto } from './dto/update.user';
 import { favorite } from 'generated/prisma';
@@ -108,6 +108,13 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   async updateMe(@GetUser('userId') userId: number, @Body() body: UpdateUserDto): Promise<ResponseUserDto> {
     return await this.userService.updateUserInfo(userId, body); 
+  }
+
+  @Put('password/change')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
+  async changePassword(@GetUser('userId') userId: number, @Body() body: ChangePasswordDto): Promise<ResponseUserDto> {
+    return await this.userService.changePassword(userId, body); 
   }
 
   @Put('bind/password')

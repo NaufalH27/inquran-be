@@ -1,10 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; 
 import { user } from 'generated/prisma';
 import { ResponseUserDto } from './dto/response.user';
 import { CreateGoogleUserDto, CreateUserDto } from 'src/auth/dto/create.user';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './dto/update.user';
+import { ChangePasswordDto, UpdateUserDto } from './dto/update.user';
 
 @Injectable()
 export class UserService {
@@ -26,6 +26,32 @@ export class UserService {
       where: { id: userId },
       data: { full_name : fullName ?? user.full_name },
     }));
+  }
+
+  async changePassword(userId: number, password: ChangePasswordDto){
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException('Password login belum di set up');
+    }
+
+    const passwordValid = await this.compareBcrypt(password.oldPassword, user.password);
+    if (!passwordValid) {
+      throw new UnauthorizedException('Password salah');
+    }
+
+    const hashed = await this.hashString(password.newPassword);
+    return new ResponseUserDto(await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+    }));
+  }
+
+  async compareBcrypt(plain: string, hashed: string): Promise<boolean> {
+    return bcrypt.compare(plain, hashed);
   }
 
   async updateUserInfo(userId: number, userInfo: UpdateUserDto) {

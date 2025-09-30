@@ -38,3 +38,18 @@ export class UpdateUserDto {
   })
   fullName?: string;
 }
+
+
+export class ChangePasswordDto {
+  @IsString({ message: 'Password harus berupa teks' })
+  @MaxLength(60, { message: 'Password maksimal 60 karakter' })
+  oldPassword: string;
+
+  @IsString({ message: 'Password harus berupa teks' })
+  @MinLength(8, { message: 'Password minimal 8 karakter' })
+  @MaxLength(60, { message: 'Password maksimal 60 karakter' })
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/, {
+    message: 'Password harus mengandung minimal satu huruf dan satu angka',
+  })
+  newPassword: string;
+}
