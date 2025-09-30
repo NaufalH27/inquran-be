@@ -2,6 +2,7 @@ import { IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsEmail, IsOptiona
 import { Transform } from 'class-transformer';
 
 export class UpdateFullnameDto {
+  @ValidateIf((o) => o.fullName !== null && o.fullName !== undefined && o.fullName !== '')
   @IsString({ message: 'Nama lengkap harus berupa teks' })
   @Transform(({ value }) => value.trim())
   @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
