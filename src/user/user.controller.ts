@@ -42,17 +42,7 @@ export class UserController {
 
     return new ResponseUserDto(user);
   }
-  @Get(':id')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async findOne(@Param('id') id: string): Promise<ResponseUserDto> {
-    const user = await this.userService.findById(+id);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return new ResponseUserDto(user);
-  }
 
   @Patch('profile/me/fullname')
   @UseGuards(AuthGuard('jwt'))
