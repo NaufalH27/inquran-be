@@ -21,7 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { extname, join } from 'path';
 import { diskStorage } from 'multer';
 import { UpdateUserDto } from './dto/update.user';
-import { CreateGoogleUserDto } from 'src/auth/dto/create.user';
+import { CreateGoogleUserDto, CreateUserDto } from 'src/auth/dto/create.user';
 import { UpdateFullnameDto } from './dto/update.user';
 import { favorite } from 'generated/prisma';
 
@@ -113,8 +113,8 @@ export class UserController {
   @Put('bind/password')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(ClassSerializerInterceptor)
-  async bindPasswordMethod(@GetUser('userId') userId: number, @Body() password: string): Promise<ResponseUserDto> {
-    return await this.userService.bindPasswordMethod(userId, password); 
+  async bindPasswordMethod(@GetUser('userId') userId: number, @Body() userForm: CreateUserDto): Promise<ResponseUserDto> {
+    return await this.userService.bindPasswordMethod(userId, userForm); 
   }
 
   @Put('bind/oauth/google')

@@ -102,17 +102,29 @@ export class UserService {
     return new ResponseUserDto(updated);
   }
 
-  async bindPasswordMethod(userId: number, password: string) {
+  async bindPasswordMethod(userId: number, userForm: CreateUserDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    const hashed = await this.hashString(password);
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username: userForm.username },
+    });
+    if (existingUsername) throw new ConflictException('Username sudah digunakan');
+
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: userForm.email },
+    });
+    if (existingEmail) throw new ConflictException('Email sudah digunakan');
+
+    const hashed = await this.hashString(userForm.password);
     return new ResponseUserDto(await this.prisma.user.update({
       where: { id: userId },
       data: {
-        password : hashed
+        password : hashed,
+        email : userForm.email,
+        username: userForm.username
       },
     }));
   }
