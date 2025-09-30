@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
+import { IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsEmail, IsOptional, ValidateIf } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateFullnameDto {
@@ -27,7 +27,7 @@ export class UpdateUserDto {
   @MaxLength(254, { message: 'Email terlalu panjang (maksimal 254 karakter)' })
   email: string;
 
-  @IsOptional()
+  @ValidateIf((o) => o.fullName !== null) 
   @IsString({ message: 'Nama lengkap harus berupa teks' })
   @Transform(({ value }) => value?.trim())
   @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
