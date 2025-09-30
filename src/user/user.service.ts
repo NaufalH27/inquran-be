@@ -86,14 +86,22 @@ export class UserService {
       throw new NotFoundException('User tidak ditemukan');
     }
 
-    return new ResponseUserDto(await this.prisma.user.update({
+    const existing = await this.prisma.user.findUnique({ where: { google_id: google.googleId } });
+    if (existing && existing.id !== userId) {
+      throw new ConflictException('Google account sudah digunakan oleh pengguna lain');
+    }
+
+    const updated = await this.prisma.user.update({
       where: { id: userId },
       data: {
-        google_id : google.googleId,
-        google_email : google.email
+        google_id: google.googleId,
+        google_email: google.email,
       },
-    }));
+    });
+
+    return new ResponseUserDto(updated);
   }
+
   async bindPasswordMethod(userId: number, password: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
