@@ -27,7 +27,7 @@ export class UpdateUserDto {
   @MaxLength(254, { message: 'Email terlalu panjang (maksimal 254 karakter)' })
   email: string;
 
-  @ValidateIf((o) => o.fullName !== null) 
+  @ValidateIf((o) => o.fullName !== null && o.fullName !== undefined && o.fullName !== '')
   @IsString({ message: 'Nama lengkap harus berupa teks' })
   @Transform(({ value }) => value?.trim())
   @MinLength(2, { message: 'Nama lengkap minimal 2 karakter' })
@@ -36,7 +36,7 @@ export class UpdateUserDto {
     message:
       'Nama lengkap hanya boleh berisi huruf, angka, underscore (_), spasi, tanda hubung (-), dan apostrof (\')',
   })
-  fullName?: string;
+  fullName?: string | null;
 }
 
 
