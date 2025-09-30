@@ -33,7 +33,7 @@ export class ResponseUserDto {
     this.googleId = user.google_id ?? null;
     this.googleEmail = user.google_email ?? null;
     this.photoUrl = user.photo_url
-      ? `${process.env.UPLOAD_BASE_URL || ''}/uploads/photos/${user.photo_url}`
+      ? `${process.env.BASE_UPLOAD_URL || ''}/uploads/photos/${user.photo_url}`
       : null;
 
     this.hasPassword = Boolean(user.password);
