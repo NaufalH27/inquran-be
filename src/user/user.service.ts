@@ -159,24 +159,26 @@ export class UserService {
     return bcrypt.hash(plain, 10);
   }
 
-    async addFavorite(userId: number, surah: number, ayah: number) {
-    return this.prisma.favorite.create({
+ async addFavorite(userId: number, surah: number, ayah: number) {
+    await this.prisma.favorite.create({
       data: {
         user_id: userId,
         surah_number: surah,
         ayah_number: ayah,
       },
     });
+    return this.listFavorites(userId);
   }
 
   async deleteFavorite(userId: number, surah: number, ayah: number) {
-    return this.prisma.favorite.deleteMany({
+    await this.prisma.favorite.deleteMany({
       where: {
         user_id: userId,
         surah_number: surah,
         ayah_number: ayah,
       },
     });
+    return this.listFavorites(userId);
   }
 
   async listFavorites(userId: number) {

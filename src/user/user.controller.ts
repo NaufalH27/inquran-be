@@ -24,6 +24,7 @@ import { ChangePasswordDto, UpdateUserDto } from './dto/update.user';
 import { CreateGoogleUserDto, CreateUserDto } from 'src/auth/dto/create.user';
 import { UpdateFullnameDto } from './dto/update.user';
 import { favorite } from 'generated/prisma';
+import { FavoriteDto } from './dto/favorite.user';
 
 
 @Controller('user')
@@ -133,40 +134,31 @@ export class UserController {
 
   @Post('favorite/add')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
   async addFavorites(
     @GetUser('userId') userId: number,
-    @Body() body: { favorites: { surah_number: number; ayah_number: number }[] },
+    @Body() favorite: FavoriteDto ,
   ) {
-    const { favorites } = body;
-    const results: favorite[] = await Promise.all(
-      favorites.map(fav =>
-        this.userService.addFavorite(userId, fav.surah_number, fav.ayah_number),
-      ),
-    );
-
-    return { success: true, data: results };
+      return await this.userService.addFavorite(userId, favorite.surah_number, favorite.ayah_number);
   }
 
   @Post('favorite/delete')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(ClassSerializerInterceptor)
   async deleteFavorites(
     @GetUser('userId') userId: number,
-    @Body() body: { favorites: { surah_number: number; ayah_number: number }[] },
+    @Body() favorite: FavoriteDto ,
   ) {
-    const { favorites } = body;
-    const results = await Promise.all(
-      favorites.map(fav =>
-        this.userService.deleteFavorite(userId, fav.surah_number, fav.ayah_number),
-      ))
-
-    return { success: true, deleted: results.length };
+      return await this.userService.deleteFavorite(userId, favorite.surah_number, favorite.ayah_number );
   }
 
   @Get('favorites')
   @UseGuards(AuthGuard('jwt'))
-  async listFavorites(@GetUser('userId') userId: number) {
-    const favorites = await this.userService.listFavorites(userId);
-    return { success: true, data: favorites };
+  @UseInterceptors(ClassSerializerInterceptor)
+  async listFavorites(
+    @GetUser('userId') userId: number,
+  ) {
+    return await this.userService.listFavorites(userId);
   }
 }
 
